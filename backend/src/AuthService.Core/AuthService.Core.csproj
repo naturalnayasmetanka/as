@@ -10,8 +10,8 @@
     <PackageReference Include="CSharpFunctionalExtensions" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="Markusha.Core" />
-    <PackageReference Include="Markusha.Framework" />
+	<PackageReference Include="Markusha.Framework" />
+	<PackageReference Include="Markusha.Core" />
     <PackageReference Include="Markusha.SharedKernel" />
     <PackageReference Include="Meziantou.Analyzer" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
