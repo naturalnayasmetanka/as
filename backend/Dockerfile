@@ -21,7 +21,25 @@ RUN dotnet build "./AuthService.Web.csproj" -c $BUILD_CONFIGURATION -o /app/buil
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./AuthService.Web.csproj" -c $BUILD_в CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./AuthService.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM build AS migrations
+WORKDIR /src
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN dotnet ef migrations bundle \
+    --project src/AuthService.Infrastructure.Postgres/AuthService.Infrastructure.Postgres.csproj \
+    --startup-project src/AuthService.Web/AuthService.Web.csproj \
+    --output /efbundle \
+    --self-contained \
+    -r linux-x64
+
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS migrations-final
+WORKDIR /app
+RUN apt-get update && apt-get install -y libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
+COPY --from=migrations /efbundle ./efbundle
+RUN chmod +x ./efbundle
+ENTRYPOINT ["./efbundle"]
 
 FROM base AS final
 WORKDIR /app

@@ -11,29 +11,28 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_HTTP_PORTS=${AS_PORT}
+      - ConnectionStrings__Db=${DB_CONNECTION_INTERNAL}
     depends_on:
       postgres:
         condition: service_healthy
       as.backend.migrations:
         condition: service_completed_successfully
     restart: always
-
+ 
   as.backend.migrations:
     container_name: as.backend.migrations
     build:
       context: ./backend
       dockerfile: Dockerfile
-    env_file:
-      - .env
+      target: migrations-final
     environment:
       - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__Db=${DB_CONNECTION_INTERNAL}
     depends_on:
       postgres:
         condition: service_healthy
     restart: "no"
-    entrypoint:
-      ["/bin/sh", "-c", "./efbundle"]
-
+ 
   as.frontend:
     container_name: as.frontend
     build:
@@ -46,27 +45,27 @@ services:
     env_file:
       - ./frontend/.env
     restart: always
-
+ 
   postgres:
-      container_name: as.postgres
-      image: postgres:16
-      restart: always
-      env_file:
-        - .env
-      environment:
-        POSTGRES_DB: ${DB_NAME}
-        POSTGRES_USER: ${DB_USER}
-        POSTGRES_PASSWORD: ${DB_PASSWORD}
-      ports:
-        - "5454:5432"
-      volumes:
-        - postgres-data:/var/lib/postgresql/data
-      healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-        interval: 5s
-        timeout: 5s
-        retries: 10
-
+    container_name: as.postgres
+    image: postgres:16
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5454:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+ 
   nginx:
     container_name: as.nginx
     image: nginx:alpine
@@ -78,6 +77,6 @@ services:
       - as.backend
       - as.frontend
     restart: always
-
+ 
 volumes:
   postgres-data:

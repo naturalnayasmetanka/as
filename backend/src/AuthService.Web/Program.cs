@@ -1,7 +1,8 @@
-﻿using Framework.Endpoints;
-using AuthService.Core;
+﻿using AuthService.Core;
 using AuthService.Infrastructure.Postgres;
+using Framework.Endpoints;
 using Scalar.AspNetCore;
+using CoreRegistration = AuthService.Core.Registration;
 
 namespace AuthService.Web;
 
@@ -13,7 +14,7 @@ public static class Program
 
         builder.Services
             .AddCore(builder.Configuration)
-            .AddInfrastructurePostgres(builder.Configuration);
+            .AddInfrastructure(builder.Configuration, builder.Environment);
 
         builder.Services.AddHealthChecks();
         builder.Services.AddEndpointsApiExplorer();
@@ -22,7 +23,7 @@ public static class Program
 
         var app = builder.Build();
 
-        var coreAssembly = typeof(Registration).Assembly;
+        var coreAssembly = typeof(CoreRegistration).Assembly;
         var endpointTypes = coreAssembly.GetTypes().Where(t => typeof(IEndpoint).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
         foreach (var type in endpointTypes)
         {
@@ -30,7 +31,7 @@ public static class Program
                 endpoint.MapEndpoint(app);
         }
 
-        app.MapHealthChecks("/helth");
+        app.MapHealthChecks("/health");
 
         app.MapEndpoints();
 
