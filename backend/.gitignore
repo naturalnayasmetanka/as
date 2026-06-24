@@ -1,0 +1,35 @@
+# Build output
+
+efbundle.exe
+nuget.config
+bin/
+obj/
+out/
+
+# .NET user files
+*.user
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.vsidx
+*.lock.json
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs and temp
+*.log
+*.tmp
+*.bak

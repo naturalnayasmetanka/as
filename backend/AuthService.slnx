@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/AuthService.Contracts/AuthService.Contracts.csproj" Id="171b6d50-fb6d-4c30-a59c-f126d6f442fb" />
+  <Project Path="src/AuthService.Core/AuthService.Core.csproj" Id="cab450c6-822a-4d79-9211-a7b3c763bac1" />
+  <Project Path="src/AuthService.Domain/AuthService.Domain.csproj" Id="766ce78e-6677-4dd0-b0f2-445a0197f3df" />
+  <Project Path="src/AuthService.Infrastructure.Postgres/AuthService.Infrastructure.Postgres.csproj" Id="941269cd-f7fc-49ee-817c-ea352d48bdb9" />
+  <Project Path="src/AuthService.Web/AuthService.Web.csproj" Id="b8dc52b8-26b9-4638-939d-87f02793f386" />
+</Solution>
