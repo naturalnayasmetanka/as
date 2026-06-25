@@ -1,17 +1,23 @@
-﻿namespace AuthService.Infrastructure.Postgres;
+﻿using AuthService.Domain.Accounts;
+using AuthService.Domain.Roles;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-public sealed class AuthServiceDbContext : DbContext
+namespace AuthService.Infrastructure.Postgres;
+
+public sealed class AuthServiceDbContext : IdentityDbContext<Account, Role, Guid>
 {
     public AuthServiceDbContext(DbContextOptions<AuthServiceDbContext> options)
         : base(options)
     {
     }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        ArgumentNullException.ThrowIfNull(modelBuilder);
+        ArgumentNullException.ThrowIfNull(builder);
 
-        modelBuilder.HasDefaultSchema("auth");
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthServiceDbContext).Assembly);
+        base.OnModelCreating(builder);
+
+        builder.HasDefaultSchema("auth");
+        builder.ApplyConfigurationsFromAssembly(typeof(AuthServiceDbContext).Assembly);
     }
 }

@@ -1,6 +1,11 @@
 ﻿using AuthService.Core.Database;
-using AuthService.Infrastructure.Postgres.Repositories;
+using AuthService.Domain.Accounts;
+using AuthService.Domain.Roles;
+
+
+//using AuthService.Infrastructure.Postgres.Repositories;
 using Dapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,7 +15,7 @@ namespace AuthService.Infrastructure.Postgres;
 
 public static class Registration
 {
-    public const string AUTH_DB_CONNECTION_NAME = "Db";
+    private const string AUTH_DB_CONNECTION_NAME = "Db";
 
     public static IServiceCollection AddInfrastructure(
        this IServiceCollection services,
@@ -20,6 +25,22 @@ public static class Registration
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
 
+        services.AddDbContext(configuration, environment);
+
+        //services.AddScoped<IWidgetsRepository, WidgetsRepository>();
+
+        services.AddScoped<ITransactionManager, TransactionManager>();
+
+        services.AddIdentity();
+
+        return services;
+    }
+
+    private static IServiceCollection AddDbContext(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
         DefaultTypeMap.MatchNamesWithUnderscores = true;
 
         bool isDevelopment = environment.IsDevelopment();
@@ -45,9 +66,27 @@ public static class Registration
             }
         });
 
-        services.AddScoped<IWidgetsRepository, WidgetsRepository>();
+        return services;
+    }
 
-        services.AddScoped<ITransactionManager, TransactionManager>();
+    private static IServiceCollection AddIdentity(this IServiceCollection services)
+    {
+        services.AddIdentity<Account, Role>(options =>
+        {
+            options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+
+            options.User.RequireUniqueEmail = true;
+            options.SignIn.RequireConfirmedEmail = true;
+        })
+        .AddEntityFrameworkStores<AuthServiceDbContext>()
+        .AddDefaultTokenProviders();
 
         return services;
     }

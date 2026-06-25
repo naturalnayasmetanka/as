@@ -11,6 +11,7 @@
     <PackageReference Include="CSharpFunctionalExtensions" />
     <PackageReference Include="Markusha.SharedKernel" />
     <PackageReference Include="Meziantou.Analyzer" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Roslynator.Analyzers" />
     <PackageReference Include="SonarAnalyzer.CSharp" />
   </ItemGroup>
