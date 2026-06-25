@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+    <add key="github" 
+         value="https://nuget.pkg.github.com/naturalnayasmetanka/index.json" />
+  </packageSources>
+  
+  <packageSourceCredentials>
+    <github>
+      <add key="Username" value="юзернеймик" />
+      <add key="ClearTextPassword" value="ключик" />
+    </github>
+  </packageSourceCredentials>
+
+  <packageSourceMapping>
+    <packageSource key="github">
+      <package pattern="SachkovTech.*" />
+    </packageSource>
+    <packageSource key="nuget.org">
+      <package pattern="*" />
+    </packageSource>
+  </packageSourceMapping>
+</configuration>
