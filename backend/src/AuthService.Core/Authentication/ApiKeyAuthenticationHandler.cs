@@ -40,10 +40,11 @@ public sealed class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAu
             return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
         }
 
+        //НИПАНИМАТ!!!, где взять  находит пользователя через UserManager, возвращает ClaimsPrincipal с минимум NameIdentifier и Email
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, "api-key-client"),
-            new Claim(ClaimTypes.AuthenticationMethod, ApiKeyDefaults.AUTHENTICATION_SCHEME),
+            new Claim(ClaimTypes.NameIdentifier, "api-key-client"),
+            new Claim(ClaimTypes.Email, ApiKeyDefaults.AUTHENTICATION_SCHEME),
         };
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var principal = new ClaimsPrincipal(identity);
