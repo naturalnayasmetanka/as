@@ -1,4 +1,5 @@
-﻿using AuthService.Core.Database;
+﻿using AuthService.Core.Authentication;
+using AuthService.Core.Database;
 using AuthService.Domain.Accounts;
 using AuthService.Domain.Roles;
 
@@ -31,7 +32,7 @@ public static class Registration
 
         services.AddScoped<ITransactionManager, TransactionManager>();
 
-        services.AddIdentity();
+        services.AddIdentity(configuration);
 
         return services;
     }
@@ -69,7 +70,7 @@ public static class Registration
         return services;
     }
 
-    private static IServiceCollection AddIdentity(this IServiceCollection services)
+    private static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddIdentity<Account, Role>(options =>
         {
@@ -87,6 +88,14 @@ public static class Registration
         })
         .AddEntityFrameworkStores<AuthServiceDbContext>()
         .AddDefaultTokenProviders();
+
+        services
+            .AddAuthentication()
+            .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
+                ApiKeyDefaults.AUTHENTICATION_SCHEME,
+                options => configuration.GetSection("ApiKey").Bind(options));
+
+        services.AddAuthorization();
 
         return services;
     }
