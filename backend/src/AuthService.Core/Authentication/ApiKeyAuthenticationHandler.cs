@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using AuthService.Domain.Accounts;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Serilog.Core;
 using System;
@@ -11,45 +13,35 @@ namespace AuthService.Core.Authentication;
 
 public sealed class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
 {
+    private readonly UserManager<Account> _userManager;
     public ApiKeyAuthenticationHandler(
+        UserManager<Account> userManager,
         IOptionsMonitor<ApiKeyAuthenticationOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder)
         : base(options, logger, encoder)
     {
+        _userManager = userManager;
     }
 
-    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        // Нет заголовка — отдаём NoResult: другие схемы могут попробовать аутентифицировать
-        // этот запрос. Fail здесь был бы агрессивен — это не «неверный ключ», а «ключа нет».
-        if (!Request.Headers.TryGetValue(ApiKeyDefaults.HEADER_NAME, out var providedKey)
-            || string.IsNullOrWhiteSpace(providedKey))
-        {
-            return Task.FromResult(AuthenticateResult.NoResult());
-        }
+        string? header = Request.Headers.Authorization;         
+        if (string.IsNullOrEmpty(header) || !header.StartsWith("Bearer "))
+            return AuthenticateResult.NoResult();                 
 
-        if (string.IsNullOrWhiteSpace(Options.Key))
-        {
-            Logger.LogError("ApiKey scheme is enabled but Options.Key is not configured.");
-            return Task.FromResult(AuthenticateResult.Fail("ApiKey is not configured on the server."));
-        }
+        string token = header["Bearer ".Length..].Trim();
+        Account? user = await _userManager.FindByIdAsync(token);
+        if (user is null)
+            return AuthenticateResult.Fail("Unknown token");
 
-        if (!string.Equals(providedKey, Options.Key, StringComparison.Ordinal))
-        {
-            return Task.FromResult(AuthenticateResult.Fail("Invalid API key."));
-        }
-
-        //НИПАНИМАТ!!!, где взять  находит пользователя через UserManager, возвращает ClaimsPrincipal с минимум NameIdentifier и Email
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, "api-key-client"),
-            new Claim(ClaimTypes.Email, ApiKeyDefaults.AUTHENTICATION_SCHEME),
-        };
-        var identity = new ClaimsIdentity(claims, Scheme.Name);
-        var principal = new ClaimsPrincipal(identity);
-        var ticket = new AuthenticationTicket(principal, Scheme.Name);
-
-        return Task.FromResult(AuthenticateResult.Success(ticket));
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Email, user.Email ?? ""),
+    };
+        var identity = new ClaimsIdentity(claims, Scheme.Name);   
+        var principal = new ClaimsPrincipal(identity);          
+        return AuthenticateResult.Success(new AuthenticationTicket(principal, Scheme.Name));
     }
 }

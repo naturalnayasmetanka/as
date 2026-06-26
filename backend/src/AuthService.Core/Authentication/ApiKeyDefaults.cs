@@ -4,5 +4,5 @@ public static class ApiKeyDefaults
 {
     public const string AUTHENTICATION_SCHEME = "ApiKey";
 
-    public const string HEADER_NAME = "X-Api-Key";
+    public const string HEADER_NAME = "Authorization";
 }

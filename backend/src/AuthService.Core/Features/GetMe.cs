@@ -41,7 +41,6 @@ public sealed class GetMeHandler : ICommandHandler<GetMeResponse, GetMeCommand>
        GetMeCommand command,
        CancellationToken cancellationToken)
     {
-        //НИПАНИМАТ!!!
         var user = await _userManager.GetUserAsync(command.Principal);
 
         if (user is null)
