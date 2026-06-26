@@ -51,6 +51,6 @@ public sealed class CreateUserHandler : ICommandHandler<CreateUserResponse, Crea
             return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure(message));
         }
 
-        return Result.Success<CreateUserResponse, Error>(new CreateUserResponse(account.Id, token.ToString()));
+        return Result.Success<CreateUserResponse, Error>(new CreateUserResponse(account.Id, account.Id.ToString()));
     }
 }
