@@ -4,14 +4,12 @@ namespace AuthService.Domain.Accounts;
 
 public sealed class Account : IdentityUser<Guid>
 {
-    private Account() { }
-
-    public Account(string email, string passwordHash, bool lockoutEnabled)
+    public Account(string email)
     {
         Id = Guid.CreateVersion7();
+        UserName = email;
         Email = email;
-        PasswordHash = passwordHash;
-        LockoutEnabled = lockoutEnabled;
+        LockoutEnabled = false;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
 

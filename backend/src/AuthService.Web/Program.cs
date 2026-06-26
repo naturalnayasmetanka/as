@@ -35,6 +35,9 @@ public static class Program
 
         app.MapEndpoints();
 
+        app.UseAuthentication();
+        app.UseAuthorization();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger(opt =>
