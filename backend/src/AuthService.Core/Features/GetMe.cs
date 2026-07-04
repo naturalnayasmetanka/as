@@ -18,9 +18,9 @@ public sealed record GetMeCommand(ClaimsPrincipal Principal) : ICommand;
 public sealed class GetMeEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app) =>
-        app.MapGet("/me", HandleAsync);
+        app.MapGet("/auth/me", HandleAsync);
 
-    [Authorize(AuthenticationSchemes = ApiKeyDefaults.AUTHENTICATION_SCHEME)]
+    [Authorize]
     private static async Task<EndpointResult<GetMeResponse>> HandleAsync(
         HttpContext httpContext,
         [FromServices] GetMeHandler handler,
