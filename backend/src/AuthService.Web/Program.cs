@@ -33,10 +33,10 @@ public static class Program
 
         app.MapHealthChecks("/health");
 
-        app.MapEndpoints();
-
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.MapEndpoints();
 
         if (app.Environment.IsDevelopment())
         {

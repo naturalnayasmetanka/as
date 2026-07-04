@@ -2,11 +2,12 @@
 using AuthService.Core.Database;
 using AuthService.Domain.Accounts;
 using AuthService.Domain.Roles;
-
-
-//using AuthService.Infrastructure.Postgres.Repositories;
 using Dapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,11 +29,9 @@ public static class Registration
 
         services.AddDbContext(configuration, environment);
 
-        //services.AddScoped<IWidgetsRepository, WidgetsRepository>();
-
         services.AddScoped<ITransactionManager, TransactionManager>();
 
-        services.AddIdentity(configuration);
+        services.AddIdentity(configuration, environment);
 
         return services;
     }
@@ -70,7 +69,7 @@ public static class Registration
         return services;
     }
 
-    private static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         services.AddIdentity<Account, Role>(options =>
         {
@@ -85,15 +84,41 @@ public static class Registration
 
             options.User.RequireUniqueEmail = true;
             options.SignIn.RequireConfirmedEmail = true;
+
+            options.ClaimsIdentity.UserIdClaimType = "sub";
+            options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Name;
+            options.ClaimsIdentity.EmailClaimType = ClaimTypes.Email;
+            options.ClaimsIdentity.SecurityStampClaimType = "security_stamp";
         })
         .AddEntityFrameworkStores<AuthServiceDbContext>()
         .AddDefaultTokenProviders();
 
-        services
-            .AddAuthentication()
-            .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(
-                ApiKeyDefaults.AUTHENTICATION_SCHEME,
-                options => configuration.GetSection("ApiKey").Bind(options));
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.Name = "AuthService.Identity";
+            options.ExpireTimeSpan = TimeSpan.FromDays(7);
+            options.SlidingExpiration = true;
+
+            options.Cookie.SecurePolicy = environment.IsDevelopment()
+                ? CookieSecurePolicy.None
+                : CookieSecurePolicy.Always;
+
+            options.Events.OnRedirectToLogin = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            };
+
+            options.Events.OnRedirectToAccessDenied = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            };
+        });
+
+        services.AddAuthentication();
 
         services.AddAuthorization();
 

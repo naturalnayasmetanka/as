@@ -42,7 +42,6 @@ public sealed class CreateUserHandler : ICommandHandler<CreateUserResponse, Crea
 
         var account = new Account(command.email);
 
-        var token = Guid.CreateVersion7();
         var result = await _userManager.CreateAsync(account, command.password);
 
         if (!result.Succeeded)
@@ -51,6 +50,6 @@ public sealed class CreateUserHandler : ICommandHandler<CreateUserResponse, Crea
             return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure(message));
         }
 
-        return Result.Success<CreateUserResponse, Error>(new CreateUserResponse(account.Id, account.Id.ToString()));
+        return Result.Success<CreateUserResponse, Error>(new CreateUserResponse(account.Id));
     }
 }
