@@ -36,14 +36,13 @@ public static class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapEndpoints();
-
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger(opt =>
             {
                 opt.RouteTemplate = "openapi/{documentName}.json";
             });
+            app.UseStaticFiles();
             app.MapScalarApiReference(opt =>
             {
                 opt.Title = "Scalar Example";
@@ -53,6 +52,8 @@ public static class Program
         }
 
         app.UseHttpsRedirection();
+
+        app.MapEndpoints();
 
         app.Run();
     }
