@@ -82,8 +82,8 @@ public static class Registration
             .Validate(o => !string.IsNullOrWhiteSpace(o.Issuer), "Jwt:Issuer is required.")
             .Validate(o => !string.IsNullOrWhiteSpace(o.Audience), "Jwt:Audience is required.")
             .Validate(o => o.ExpireMinutes is > 0 and <= 30, "Jwt:ExpireMinutes must be between 1 and 30.")
-            .Validate(o => !string.IsNullOrWhiteSpace(o.SigningKey), "JWT__SIGNINGKEY is required.")
-            .Validate(o => Encoding.UTF8.GetByteCount(o.SigningKey) >= 32, "JWT__SIGNINGKEY must be at least 32 bytes.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.SigningKey), "Jwt:SigningKey is required.")
+            .Validate(o => Encoding.UTF8.GetByteCount(o.SigningKey) >= 32, "Jwt:SigningKey must be at least 32 bytes.")
             .ValidateOnStart();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
