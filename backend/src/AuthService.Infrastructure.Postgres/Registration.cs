@@ -3,15 +3,17 @@ using AuthService.Core.Database;
 using AuthService.Domain.Accounts;
 using AuthService.Domain.Roles;
 using Dapper;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace AuthService.Infrastructure.Postgres;
 
@@ -69,8 +71,23 @@ public static class Registration
         return services;
     }
 
-    private static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    private static IServiceCollection AddIdentity(
+        this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
+        JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+        services
+            .AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.Issuer), "Jwt:Issuer is required.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.Audience), "Jwt:Audience is required.")
+            .Validate(o => o.ExpireMinutes is > 0 and <= 30, "Jwt:ExpireMinutes must be between 1 and 30.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.SigningKey), "JWT__SIGNINGKEY is required.")
+            .Validate(o => Encoding.UTF8.GetByteCount(o.SigningKey) >= 32, "JWT__SIGNINGKEY must be at least 32 bytes.")
+            .ValidateOnStart();
+
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+
         services.AddIdentity<Account, Role>(options =>
         {
             options.Password.RequiredLength = 8;
@@ -83,7 +100,7 @@ public static class Registration
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
 
             options.User.RequireUniqueEmail = true;
-            options.SignIn.RequireConfirmedEmail = true;
+            options.SignIn.RequireConfirmedEmail = false;
 
             options.ClaimsIdentity.UserIdClaimType = "sub";
             options.ClaimsIdentity.UserNameClaimType = ClaimTypes.Name;
@@ -118,7 +135,35 @@ public static class Registration
             };
         });
 
-        services.AddAuthentication();
+        services.AddAuthentication()
+             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+             {
+                 var jwtOptions = configuration
+                     .GetSection(JwtOptions.SectionName)
+                     .Get<JwtOptions>()
+                     ?? throw new InvalidOperationException("Jwt options are not configured.");
+
+                 options.MapInboundClaims = false;
+
+                 options.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     ValidateIssuer = true,
+                     ValidIssuer = jwtOptions.Issuer,
+
+                     ValidateAudience = true,
+                     ValidAudience = jwtOptions.Audience,
+
+                     ValidateLifetime = true,
+                     ClockSkew = TimeSpan.Zero,
+
+                     ValidateIssuerSigningKey = true,
+                     IssuerSigningKey = new SymmetricSecurityKey(
+                         Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+
+                     NameClaimType = "name",
+                     RoleClaimType = "role"
+                 };
+             });
 
         services.AddAuthorization();
 

@@ -20,7 +20,7 @@ public sealed class GetMeEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app) =>
         app.MapGet("/auth/me", HandleAsync);
 
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "Identity.Application,Bearer")]
     private static async Task<EndpointResult<GetMeResponse>> HandleAsync(
         HttpContext httpContext,
         [FromServices] GetMeHandler handler,
