@@ -1,7 +1,9 @@
 ﻿using AuthService.Core.Authentication;
 using AuthService.Core.Database;
+using AuthService.Core.Database.Abstractions;
 using AuthService.Domain.Accounts;
 using AuthService.Domain.Roles;
+using AuthService.Infrastructure.Postgres.Repositories;
 using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -32,6 +34,7 @@ public static class Registration
         services.AddDbContext(configuration, environment);
 
         services.AddScoped<ITransactionManager, TransactionManager>();
+        services.AddScoped<IRefreshSessionRepository, RefreshSessionRepository>();
 
         services.AddIdentity(configuration, environment);
 
@@ -81,7 +84,7 @@ public static class Registration
             .Bind(configuration.GetSection(JwtOptions.SectionName))
             .Validate(o => !string.IsNullOrWhiteSpace(o.Issuer), "Jwt:Issuer is required.")
             .Validate(o => !string.IsNullOrWhiteSpace(o.Audience), "Jwt:Audience is required.")
-            .Validate(o => o.ExpireMinutes is > 0 and <= 30, "Jwt:ExpireMinutes must be between 1 and 30.")
+            .Validate(o => o.AccessTokenExpireMinutes is > 0 and <= 30, "Jwt:AccessTokenExpireMinutes must be between 1 and 30.")
             .Validate(o => !string.IsNullOrWhiteSpace(o.SigningKey), "Jwt:SigningKey is required.")
             .Validate(o => Encoding.UTF8.GetByteCount(o.SigningKey) >= 32, "Jwt:SigningKey must be at least 32 bytes.")
             .ValidateOnStart();
