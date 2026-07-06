@@ -15,6 +15,11 @@ public interface IRefreshSessionRepository
     Task<RefreshSession?> FindValidByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Находит отозванную сессию по хешу токена для reuse detection.
+    /// </summary>
+    Task<RefreshSession?> FindRevokedByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Находит сессию по ID.
     /// </summary>
     Task<RefreshSession?> FindByIdAsync(Guid sessionId, CancellationToken cancellationToken);

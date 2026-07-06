@@ -1,5 +1,6 @@
 using AuthService.Core.Authentication;
 using AuthService.Core.Authentication.Abstractions;
+using AuthService.Core.Database;
 using AuthService.Core.Database.Abstractions;
 using AuthService.Domain.Accounts;
 using AuthService.Domain.RefreshSessions;
@@ -43,6 +44,7 @@ public sealed class JwtRefreshHandler : ICommandHandler<JwtRefreshResponse, JwtR
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IRefreshSessionRepository _refreshSessionRepository;
+    private readonly ITransactionManager _transactionManager;
     private readonly RefreshTokenOptions _refreshTokenOptions;
 
     public JwtRefreshHandler(
@@ -50,12 +52,14 @@ public sealed class JwtRefreshHandler : ICommandHandler<JwtRefreshResponse, JwtR
         IJwtTokenService jwtTokenService,
         IRefreshTokenService refreshTokenService,
         IRefreshSessionRepository refreshSessionRepository,
+        ITransactionManager transactionManager,
         IOptions<RefreshTokenOptions> refreshTokenOptions)
     {
         _userManager = userManager;
         _jwtTokenService = jwtTokenService;
         _refreshTokenService = refreshTokenService;
         _refreshSessionRepository = refreshSessionRepository;
+        _transactionManager = transactionManager;
         _refreshTokenOptions = refreshTokenOptions.Value;
     }
 
@@ -75,6 +79,12 @@ public sealed class JwtRefreshHandler : ICommandHandler<JwtRefreshResponse, JwtR
 
         if (session is null)
         {
+            var revokedSession = await _refreshSessionRepository.FindRevokedByTokenHashAsync(tokenHash, cancellationToken);
+            if (revokedSession is not null)
+            {
+                await _refreshSessionRepository.RevokeSessionChainAsync(revokedSession.Id, cancellationToken);
+            }
+
             ClearRefreshCookie(command.HttpContext);
             return Result.Failure<JwtRefreshResponse, Error>(
                 GeneralErrors.Failure("Invalid or expired refresh token"));
@@ -93,17 +103,29 @@ public sealed class JwtRefreshHandler : ICommandHandler<JwtRefreshResponse, JwtR
         var newTokenHash = _refreshTokenService.ComputeTokenHash(newRefreshToken);
         var newExpiresAt = DateTimeOffset.UtcNow.AddMinutes(_refreshTokenOptions.ExpireMinutes);
 
-        // Отзываем старую сессию
-        session.Revoke();
-        await _refreshSessionRepository.RevokeAsync(session.Id, cancellationToken);
+        var rotationResult = await _transactionManager.CommitTransactionAsync<RefreshSession>(
+            async ct =>
+            {
+                // Отзываем старую сессию
+                await _refreshSessionRepository.RevokeAsync(session.Id, ct);
 
-        // Создаём новую сессию как потомка старой (для отслеживания цепочки)
-        var newSession = RefreshSession.Create(
-            session.UserId,
-            newTokenHash,
-            newExpiresAt,
-            parentSessionId: session.Id);
-        await _refreshSessionRepository.CreateAsync(newSession, cancellationToken);
+                // Создаём новую сессию как потомка старой (для отслеживания цепочки)
+                var newSession = RefreshSession.Create(
+                    session.UserId,
+                    newTokenHash,
+                    newExpiresAt,
+                    parentSessionId: session.Id);
+                await _refreshSessionRepository.CreateAsync(newSession, ct);
+
+                return Result.Success<RefreshSession, Error>(newSession);
+            },
+            cancellationToken);
+
+        if (rotationResult.IsFailure)
+        {
+            ClearRefreshCookie(command.HttpContext);
+            return Result.Failure<JwtRefreshResponse, Error>(rotationResult.Error);
+        }
 
         // Создаём новый access-токен
         var accessToken = _jwtTokenService.Create(user);

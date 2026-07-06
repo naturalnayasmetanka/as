@@ -30,6 +30,14 @@ internal sealed class RefreshSessionRepository : IRefreshSessionRepository
                 cancellationToken);
     }
 
+    public async Task<RefreshSession?> FindRevokedByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
+    {
+        return await _context.RefreshSessions
+            .FirstOrDefaultAsync(
+                rs => rs.TokenHash == tokenHash && rs.IsRevoked,
+                cancellationToken);
+    }
+
     public async Task<RefreshSession?> FindByIdAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         return await _context.RefreshSessions

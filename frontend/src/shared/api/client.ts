@@ -43,6 +43,14 @@ function getHeaders(options: RequestInit = {}): Record<string, string> {
   };
 }
 
+function createAuthorizedRequest(url: string, options: RequestInit = {}): Request {
+  return new Request(url, {
+    ...options,
+    credentials: "include",
+    headers: getHeaders(options),
+  });
+}
+
 async function createApiError(response: Response): Promise<ApiError> {
   let message = response.statusText;
 
@@ -134,24 +142,21 @@ async function refreshAccessToken(): Promise<void> {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const headers = getHeaders(options);
+  const initialRequest = createAuthorizedRequest(url, options);
+  const retryRequest = initialRequest.clone();
 
-  let response = await fetch(url, {
-    ...options,
-    credentials: "include",
-    headers,
-  });
+  let response = await fetch(initialRequest);
 
   if (response.status === 401 && !RETRY_BLOCKLIST.has(path)) {
     try {
       await refreshAccessToken();
 
-      const retryHeaders = getHeaders(options);
-      response = await fetch(url, {
-        ...options,
-        credentials: "include",
-        headers: retryHeaders,
-      });
+      response = await fetch(
+        new Request(retryRequest, {
+          credentials: "include",
+          headers: getHeaders(options),
+        }),
+      );
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
