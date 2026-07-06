@@ -5,10 +5,14 @@ import { useRouter } from "next/navigation";
 import { getMe } from "@/entities/user";
 import type { User } from "@/entities/user";
 import { ProfileCard } from "@/widgets/profile-card";
+import { getAuthType } from "@/shared/api/client";
+
+type AuthType = "cookie" | "token";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [authType, setAuthType] = useState<AuthType>("cookie");
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
@@ -18,6 +22,7 @@ export default function ProfilePage() {
       .then((data) => {
         if (!cancelled) {
           setUser(data);
+          setAuthType(getAuthType() ?? "cookie");
           setChecked(true);
         }
       })
@@ -34,5 +39,5 @@ export default function ProfilePage() {
     return <p>Загрузка...</p>;
   }
 
-  return <ProfileCard user={user} />;
+  return <ProfileCard user={user} authType={authType} />;
 }

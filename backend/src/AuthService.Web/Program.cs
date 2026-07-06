@@ -8,6 +8,8 @@ namespace AuthService.Web;
 
 public static class Program
 {
+    private const string LocalFrontendCorsPolicy = "LocalFrontend";
+
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,17 @@ public static class Program
         builder.Services.AddHealthChecks();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(LocalFrontendCorsPolicy, policy =>
+            {
+                policy
+                    .WithOrigins("http://localhost:3000")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
 
 
         var app = builder.Build();
@@ -33,6 +46,7 @@ public static class Program
 
         app.MapHealthChecks("/health");
 
+        app.UseCors(LocalFrontendCorsPolicy);
         app.UseAuthentication();
         app.UseAuthorization();
 

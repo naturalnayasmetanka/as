@@ -20,7 +20,7 @@ public sealed class JwtTokenService : IJwtTokenService
     public JwtTokenResult Create(Account user)
     {
         var now = DateTimeOffset.UtcNow;
-        var expiresAt = now.AddMinutes(_options.ExpireMinutes);
+        var expiresAt = now.AddMinutes(_options.AccessTokenExpireMinutes);
 
         var claims = new List<Claim>
         {

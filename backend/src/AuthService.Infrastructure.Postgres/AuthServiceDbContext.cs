@@ -1,4 +1,5 @@
 ﻿using AuthService.Domain.Accounts;
+using AuthService.Domain.RefreshSessions;
 using AuthService.Domain.Roles;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
@@ -10,6 +11,8 @@ public sealed class AuthServiceDbContext : IdentityDbContext<Account, Role, Guid
         : base(options)
     {
     }
+
+    public DbSet<RefreshSession> RefreshSessions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
