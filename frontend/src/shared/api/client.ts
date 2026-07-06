@@ -11,6 +11,12 @@ export class ApiError extends Error {
 
 export type AuthType = "cookie" | "token" | null;
 
+export interface SessionUser {
+  id: string;
+  email: string;
+  roles: string[];
+}
+
 type ApiErrorMessage = {
   message?: string;
 };
@@ -25,6 +31,7 @@ type ApiEnvelope<T> = {
 
 let accessToken: string | null = null;
 let authType: AuthType = null;
+let sessionUser: SessionUser | null = null;
 let refreshPromise: Promise<void> | null = null;
 
 const RETRY_BLOCKLIST = new Set<string>([
@@ -34,6 +41,44 @@ const RETRY_BLOCKLIST = new Set<string>([
   "/auth/logout",
   "/register",
 ]);
+
+function decodeBase64Url(value: string): string {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  return atob(padded);
+}
+
+function readStringArrayClaim(payload: Record<string, unknown>, name: string): string[] {
+  const value = payload[name];
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+
+  return typeof value === "string" ? [value] : [];
+}
+
+function decodeSessionUser(token: string): SessionUser | null {
+  try {
+    const [, payloadPart] = token.split(".");
+    if (!payloadPart) return null;
+
+    const payload = JSON.parse(decodeBase64Url(payloadPart)) as Record<string, unknown>;
+    const id = typeof payload.sub === "string" ? payload.sub : "";
+    const email =
+      typeof payload.email === "string"
+        ? payload.email
+        : typeof payload.name === "string"
+          ? payload.name
+          : "";
+    const roles = readStringArrayClaim(payload, "role");
+
+    if (!id || !email) return null;
+
+    return { id, email, roles };
+  } catch {
+    return null;
+  }
+}
 
 function getHeaders(options: RequestInit = {}): Record<string, string> {
   return {
@@ -104,7 +149,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return body as T;
 }
 
-async function refreshAccessToken(): Promise<void> {
+export async function refreshAccessToken(): Promise<void> {
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -129,8 +174,7 @@ async function refreshAccessToken(): Promise<void> {
       throw new ApiError(response.status, "Refresh failed");
     }
 
-    accessToken = result.accessToken;
-    authType = "token";
+    setAccessToken(result.accessToken);
   })();
 
   try {
@@ -175,6 +219,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export function setAccessToken(token: string) {
   accessToken = token;
   authType = token ? "token" : authType;
+  sessionUser = token ? decodeSessionUser(token) : null;
+}
+
+export function setSessionUser(user: SessionUser | null) {
+  sessionUser = user;
 }
 
 export function setAuthType(type: AuthType) {
@@ -184,10 +233,15 @@ export function setAuthType(type: AuthType) {
 export function clearAccessToken() {
   accessToken = null;
   authType = null;
+  sessionUser = null;
 }
 
 export function getAuthType(): AuthType {
   return authType;
+}
+
+export function getSessionUser(): SessionUser | null {
+  return sessionUser;
 }
 
 export const api = {
@@ -197,4 +251,5 @@ export const api = {
       method: "POST",
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }),
+  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };

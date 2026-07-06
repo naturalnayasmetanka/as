@@ -1,5 +1,4 @@
-﻿using AuthService.Contracts;
-using AuthService.Core.Authentication;
+using AuthService.Contracts;
 using AuthService.Domain.Accounts;
 using Core.Abstractions;
 using Framework.Endpoints;
@@ -46,6 +45,12 @@ public sealed class GetMeHandler : ICommandHandler<GetMeResponse, GetMeCommand>
         if (user is null)
             return Result.Failure<GetMeResponse, Error>(GeneralErrors.Failure("User not found"));
 
-        return Result.Success<GetMeResponse, Error>(new GetMeResponse(user.Id, user.Email));
+        var email = user.Email;
+        if (string.IsNullOrWhiteSpace(email))
+            return Result.Failure<GetMeResponse, Error>(GeneralErrors.Failure("User email not found"));
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return Result.Success<GetMeResponse, Error>(new GetMeResponse(user.Id, email, roles.ToArray()));
     }
 }

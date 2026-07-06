@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getMe } from "@/entities/user";
 import type { User } from "@/entities/user";
 import { ProfileCard } from "@/widgets/profile-card";
-import { getAuthType } from "@/shared/api/client";
+import { getAuthType, setSessionUser } from "@/shared/api/client";
 
 type AuthType = "cookie" | "token";
 
@@ -22,6 +22,7 @@ export default function ProfilePage() {
       .then((data) => {
         if (!cancelled) {
           setUser(data);
+          setSessionUser(data);
           setAuthType(getAuthType() ?? "cookie");
           setChecked(true);
         }

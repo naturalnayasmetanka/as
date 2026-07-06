@@ -29,6 +29,23 @@ export function ProfileCard({ user, authType = "cookie", onLogout }: ProfileCard
             {authType === "token" ? "JWT Access Token" : "Cookie"}
           </p>
         </div>
+        <div className="space-y-2">
+          <p className="text-sm text-slate-500">Роли</p>
+          <div className="flex flex-wrap gap-2">
+            {user.roles.length > 0 ? (
+              user.roles.map((role) => (
+                <span
+                  key={role}
+                  className="rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-800 ring-1 ring-slate-200"
+                >
+                  {role}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">Нет ролей</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-end">

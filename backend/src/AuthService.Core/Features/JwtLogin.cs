@@ -59,6 +59,10 @@ public sealed class JwtLoginHandler : ICommandHandler<JwtLoginResponse, JwtLogin
         JwtLoginCommand command,
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(command.Email) || string.IsNullOrWhiteSpace(command.Password))
+            return Result.Failure<JwtLoginResponse, Error>(
+                GeneralErrors.Failure("Invalid credentials"));
+
         var user = await _userManager.FindByEmailAsync(command.Email);
 
         if (user is null)
@@ -74,7 +78,8 @@ public sealed class JwtLoginHandler : ICommandHandler<JwtLoginResponse, JwtLogin
             return Result.Failure<JwtLoginResponse, Error>(
                 GeneralErrors.Failure("Invalid credentials"));
 
-        var accessToken = _jwtTokenService.Create(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        var accessToken = _jwtTokenService.Create(user, roles);
         var refreshToken = _refreshTokenService.GenerateToken();
         var tokenHash = _refreshTokenService.ComputeTokenHash(refreshToken);
         var expiresAt = DateTimeOffset.UtcNow.AddMinutes(_refreshTokenOptions.ExpireMinutes);

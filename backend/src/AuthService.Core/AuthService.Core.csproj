@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="AsyncFixer" />
     <PackageReference Include="CSharpFunctionalExtensions" />
+    <PackageReference Include="Dapper" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
 	<PackageReference Include="Markusha.Framework" />
@@ -19,6 +20,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Npgsql" />
     <PackageReference Include="Roslynator.Analyzers" />
     <PackageReference Include="SonarAnalyzer.CSharp" />
   </ItemGroup>

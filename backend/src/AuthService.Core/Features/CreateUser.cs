@@ -1,5 +1,6 @@
-﻿using AuthService.Contracts;
+using AuthService.Contracts;
 using AuthService.Domain.Accounts;
+using AuthService.Domain.Roles;
 using Core.Abstractions;
 using Framework.Endpoints;
 using Microsoft.AspNetCore.Builder;
@@ -36,9 +37,12 @@ public sealed class CreateUserHandler : ICommandHandler<CreateUserResponse, Crea
        CreateUserCommand command,
        CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(command.email) || string.IsNullOrWhiteSpace(command.password))
+            return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure("Email and password are required"));
+
         var existing = await _userManager.FindByEmailAsync(command.email);
         if (existing is not null)
-            return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure("User alreadu exists"));
+            return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure("User already exists"));
 
         var account = new Account(command.email);
 
@@ -47,6 +51,13 @@ public sealed class CreateUserHandler : ICommandHandler<CreateUserResponse, Crea
         if (!result.Succeeded)
         {
             var message = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure(message));
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(account, SystemRoles.User);
+        if (!roleResult.Succeeded)
+        {
+            var message = string.Join("; ", roleResult.Errors.Select(e => e.Description));
             return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure(message));
         }
 
