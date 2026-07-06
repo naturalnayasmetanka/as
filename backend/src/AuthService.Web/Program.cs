@@ -1,4 +1,5 @@
-﻿using AuthService.Core;
+using AuthService.Core;
+using AuthService.Core.Authorization;
 using AuthService.Infrastructure.Postgres;
 using Framework.Endpoints;
 using Scalar.AspNetCore;
@@ -33,7 +34,6 @@ public static class Program
             });
         });
 
-
         var app = builder.Build();
 
         var coreAssembly = typeof(CoreRegistration).Assembly;
@@ -48,6 +48,7 @@ public static class Program
 
         app.UseCors(LocalFrontendCorsPolicy);
         app.UseAuthentication();
+        app.UseCurrentUser();
         app.UseAuthorization();
 
         if (app.Environment.IsDevelopment())

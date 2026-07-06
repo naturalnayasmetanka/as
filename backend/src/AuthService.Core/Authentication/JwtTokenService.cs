@@ -1,4 +1,4 @@
-﻿using AuthService.Contracts;
+using AuthService.Contracts;
 using AuthService.Domain.Accounts;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +17,7 @@ public sealed class JwtTokenService : IJwtTokenService
         _options = options.Value;
     }
 
-    public JwtTokenResult Create(Account user)
+    public JwtTokenResult Create(Account user, IEnumerable<string> roles)
     {
         var now = DateTimeOffset.UtcNow;
         var expiresAt = now.AddMinutes(_options.AccessTokenExpireMinutes);
@@ -30,6 +30,8 @@ public sealed class JwtTokenService : IJwtTokenService
             new("security_stamp", user.SecurityStamp ?? string.Empty),
             new(JwtRegisteredClaimNames.Iat, now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
+
+        claims.AddRange(roles.Select(role => new Claim("role", role)));
 
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SigningKey)),

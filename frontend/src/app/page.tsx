@@ -6,7 +6,7 @@ import type { User } from "@/entities/user";
 import { LoginForm } from "@/features/auth/login";
 import { RegisterForm } from "@/features/auth/register";
 import { ProfileCard } from "@/widgets/profile-card";
-import { getAuthType, clearAccessToken } from "@/shared/api/client";
+import { getAuthType, clearAccessToken, setSessionUser } from "@/shared/api/client";
 
 type Mode = "login" | "register";
 
@@ -21,6 +21,7 @@ export default function HomePage() {
   const fetchCurrentUser = async () => {
     const data = await getMe();
     setUser(data);
+    setSessionUser(data);
     setAuthType(getAuthType() ?? "cookie");
   };
 
@@ -31,11 +32,13 @@ export default function HomePage() {
       .then((data) => {
         if (cancelled) return;
         setUser(data);
+        setSessionUser(data);
         setAuthType(getAuthType() ?? "cookie");
       })
       .catch(() => {
         if (cancelled) return;
         setUser(null);
+        setSessionUser(null);
         setAuthType(null);
       })
       .finally(() => {
@@ -53,6 +56,7 @@ export default function HomePage() {
 
   const handleLogout = () => {
     setUser(null);
+    setSessionUser(null);
     setAuthType(null);
     clearAccessToken();
   };

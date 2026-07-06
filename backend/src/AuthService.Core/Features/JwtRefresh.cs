@@ -128,7 +128,8 @@ public sealed class JwtRefreshHandler : ICommandHandler<JwtRefreshResponse, JwtR
         }
 
         // Создаём новый access-токен
-        var accessToken = _jwtTokenService.Create(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        var accessToken = _jwtTokenService.Create(user, roles);
 
         // Устанавливаем новый refresh cookie
         SetRefreshCookie(command.HttpContext, newRefreshToken, newExpiresAt);
