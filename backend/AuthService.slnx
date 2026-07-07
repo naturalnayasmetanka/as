@@ -4,4 +4,9 @@
   <Project Path="src/AuthService.Domain/AuthService.Domain.csproj" Id="766ce78e-6677-4dd0-b0f2-445a0197f3df" />
   <Project Path="src/AuthService.Infrastructure.Postgres/AuthService.Infrastructure.Postgres.csproj" Id="941269cd-f7fc-49ee-817c-ea352d48bdb9" />
   <Project Path="src/AuthService.Web/AuthService.Web.csproj" Id="b8dc52b8-26b9-4638-939d-87f02793f386" />
+  <Project Path="src/ProjectsService.Core/ProjectsService.Core.csproj" Id="c52d7e51-684f-4f4c-bc1f-47f6ee457101" />
+  <Project Path="src/ProjectsService.Domain/ProjectsService.Domain.csproj" Id="fae10a5d-b320-480f-b36f-02c469d08376" />
+  <Project Path="src/ProjectsService.Infrastructure.Postgres/ProjectsService.Infrastructure.Postgres.csproj" Id="3d1c8d92-8ac9-4a87-a9cb-b4c42ebddf44" />
+  <Project Path="src/ProjectsService.Web/ProjectsService.Web.csproj" Id="fbca55e1-c173-41c5-bcca-a2a65e21688d" />
+  <Project Path="src/Shared/Shared.csproj" Id="da8d04d6-5474-4499-94c2-145282bb0944" />
 </Solution>

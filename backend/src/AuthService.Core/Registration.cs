@@ -3,9 +3,10 @@ using AuthService.Core.Authentication.Abstractions;
 using AuthService.Core.Authorization;
 using Core.Abstractions;
 using FluentValidation;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Authorization;
 
 namespace AuthService.Core;
 
@@ -17,9 +18,7 @@ public static class Registration
         services.AddValidatorsFromAssembly(typeof(Registration).Assembly);
 
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-        services.AddScoped<CurrentUser>();
-        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
-        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddPermissionAuthorization<Permissions>(JwtBearerDefaults.AuthenticationScheme);
 
         services
             .AddOptions<BootstrapAdminOptions>()

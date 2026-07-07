@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 
-namespace AuthService.Core.Authorization;
+namespace Shared.Authorization;
 
 public static class PermissionEndpointConventionBuilderExtensions
 {

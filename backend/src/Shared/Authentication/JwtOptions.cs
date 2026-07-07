@@ -1,4 +1,4 @@
-﻿namespace AuthService.Core.Authentication;
+namespace Shared.Authentication;
 
 public sealed class JwtOptions
 {

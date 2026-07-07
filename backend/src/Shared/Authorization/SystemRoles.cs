@@ -1,4 +1,4 @@
-namespace AuthService.Core.Authorization;
+namespace Shared.Authorization;
 
 public static class SystemRoles
 {

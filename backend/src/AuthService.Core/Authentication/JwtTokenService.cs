@@ -2,6 +2,7 @@
 using AuthService.Domain.Accounts;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Authentication;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;

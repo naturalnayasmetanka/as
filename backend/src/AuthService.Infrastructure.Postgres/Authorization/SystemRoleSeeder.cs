@@ -3,6 +3,7 @@ using AuthService.Domain.Accounts;
 using AuthService.Domain.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Shared.Authorization;
 
 namespace AuthService.Infrastructure.Postgres.Authorization;
 

@@ -32,6 +32,42 @@ services:
       postgres:
         condition: service_healthy
     restart: "no"
+
+  as.projects:
+    container_name: as.projects
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.projects
+    ports:
+      - "7220:7220"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_HTTP_PORTS=${PROJECTS_PORT}
+      - ConnectionStrings__Db=${DB_CONNECTION_INTERNAL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      as.projects.migrations:
+        condition: service_completed_successfully
+    restart: always
+
+  as.projects.migrations:
+    container_name: as.projects.migrations
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.projects
+      target: migrations-final
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ConnectionStrings__Db=${DB_CONNECTION_INTERNAL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
  
   as.frontend:
     container_name: as.frontend
@@ -40,6 +76,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_PROJECTS_API_URL=${NEXT_PUBLIC_PROJECTS_API_URL}
     ports:
       - "3000:3000"
     env_file:
@@ -75,6 +112,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - as.backend
+      - as.projects
       - as.frontend
     restart: always
  

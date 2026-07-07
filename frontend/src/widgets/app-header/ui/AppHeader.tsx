@@ -6,6 +6,7 @@ import { useSessionStore } from "@/shared/session";
 import { refreshAccessToken } from "@/shared/api/client";
 
 const roleLinks = [
+  { href: "/projects", label: "Проекты", roles: ["User", "Employee", "Moderator", "Admin"] },
   { href: "/staff", label: "Сотрудники", roles: ["Employee", "Moderator", "Admin"] },
   { href: "/moderation", label: "Модерация", roles: ["Moderator", "Admin"] },
   { href: "/admin", label: "Админка", roles: ["Admin"] },

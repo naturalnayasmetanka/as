@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AuthService.Core\AuthService.Core.csproj" />
     <ProjectReference Include="..\AuthService.Domain\AuthService.Domain.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
