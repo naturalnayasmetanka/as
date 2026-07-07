@@ -18,7 +18,7 @@ public static class Program
         builder.Configuration.AddLocalDotEnv(builder.Environment);
 
         builder.Services
-            .AddCore()
+            .AddCore(builder.Configuration)
             .AddInfrastructure(builder.Configuration, builder.Environment);
 
         builder.Services.AddHealthChecks();
