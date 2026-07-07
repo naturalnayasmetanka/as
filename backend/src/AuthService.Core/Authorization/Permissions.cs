@@ -28,6 +28,7 @@ public sealed class Permissions : IPermissionMap
         role switch
         {
             SystemRoles.Admin => [UsersView, UsersManage, ModerationView, StaffDashboardView],
+            SystemRoles.ServiceAccount => [UsersView],
             SystemRoles.Moderator => [ModerationView, StaffDashboardView],
             SystemRoles.Employee => [StaffDashboardView],
             _ => []

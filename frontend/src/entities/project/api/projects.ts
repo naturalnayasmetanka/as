@@ -1,5 +1,10 @@
 import { projectsApi } from "@/shared/api/client";
-import type { CreateProjectPayload, Project, UpdateProjectPayload } from "../model/types";
+import type {
+  CreateProjectPayload,
+  Project,
+  ProjectOwnerReport,
+  UpdateProjectPayload,
+} from "../model/types";
 
 export function getProjects() {
   return projectsApi.get<Project[]>("/projects");
@@ -15,4 +20,8 @@ export function updateProject(projectId: string, payload: UpdateProjectPayload) 
 
 export function deleteProject(projectId: string) {
   return projectsApi.delete<void>(`/projects/${projectId}`);
+}
+
+export function getProjectOwnerReport() {
+  return projectsApi.get<ProjectOwnerReport>("/projects/report/owners");
 }

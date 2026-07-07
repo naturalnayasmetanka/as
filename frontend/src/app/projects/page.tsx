@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import {
   createProject,
   deleteProject,
+  getProjectOwnerReport,
   getProjects,
   updateProject,
   type Project,
+  type ProjectOwnerReport,
   type ProjectStatus,
 } from "@/entities/project";
 import { ApiError } from "@/shared/api/client";
@@ -34,6 +36,10 @@ export default function ProjectsPage() {
   const [form, setForm] = useState<FormState>(initialForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<ProjectOwnerReport | null>(null);
+  const [reportLoading, setReportLoading] = useState(true);
+  const [reportForbidden, setReportForbidden] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [forbidden, setForbidden] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +67,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     loadProjects();
+    loadOwnerReport();
   }, []);
 
   function handleRequestError(err: unknown, fallback: string) {
@@ -75,6 +82,33 @@ export default function ProjectsPage() {
     }
 
     setError(err instanceof ApiError ? err.message : fallback);
+  }
+
+  async function loadOwnerReport() {
+    setReportLoading(true);
+    setReportForbidden(false);
+    setReportError(null);
+
+    try {
+      const data = await getProjectOwnerReport();
+      setReport(data);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace("/login");
+        return;
+      }
+
+      if (err instanceof ApiError && err.status === 403) {
+        setReport(null);
+        setReportForbidden(true);
+        return;
+      }
+
+      setReport(null);
+      setReportError(err instanceof ApiError ? err.message : "Не удалось загрузить отчёт");
+    } finally {
+      setReportLoading(false);
+    }
   }
 
   function startEdit(project: Project) {
@@ -113,6 +147,7 @@ export default function ProjectsPage() {
 
       resetForm();
       await loadProjects();
+      await loadOwnerReport();
     } catch (err) {
       handleRequestError(err, editingId ? "Не удалось обновить проект" : "Не удалось создать проект");
     } finally {
@@ -129,6 +164,7 @@ export default function ProjectsPage() {
       await deleteProject(projectId);
       setNotice("Проект удалён");
       await loadProjects();
+      await loadOwnerReport();
       if (editingId === projectId) {
         resetForm();
       }
@@ -295,6 +331,55 @@ export default function ProjectsPage() {
                   </div>
                 )}
               </div>
+
+              <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      AuthService passthrough
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold text-slate-950">Отчёт с владельцами</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={loadOwnerReport}
+                    disabled={reportLoading}
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Обновить отчёт
+                  </button>
+                </div>
+
+                {reportLoading ? (
+                  <p className="text-sm text-slate-600">Загрузка...</p>
+                ) : reportForbidden ? (
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    Нет доступа к данным пользователей AuthService.
+                  </div>
+                ) : reportError ? (
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {reportError}
+                  </div>
+                ) : !report || report.projects.length === 0 ? (
+                  <p className="text-sm text-slate-600">Для отчёта пока нет проектов.</p>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {report.projects.map((item) => (
+                      <article key={item.projectId} className="py-3">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <h3 className="text-sm font-semibold text-slate-950">{item.projectName}</h3>
+                            <p className="text-sm text-slate-600">{item.ownerEmail}</p>
+                          </div>
+                          <span className="w-fit rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                            {item.status}
+                          </span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
             </section>
           </section>
         </main>
