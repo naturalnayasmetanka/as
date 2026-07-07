@@ -1,8 +1,10 @@
-﻿using AuthService.Core.Authentication;
+using AuthService.Core.Authentication;
+using AuthService.Core.Authorization;
 using AuthService.Core.Database;
 using AuthService.Core.Database.Abstractions;
 using AuthService.Domain.Accounts;
 using AuthService.Domain.Roles;
+using AuthService.Infrastructure.Postgres.Authorization;
 using AuthService.Infrastructure.Postgres.Repositories;
 using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,6 +37,8 @@ public static class Registration
 
         services.AddScoped<ITransactionManager, TransactionManager>();
         services.AddScoped<IRefreshSessionRepository, RefreshSessionRepository>();
+        services.AddScoped<IAdminUserReadRepository, AdminUserReadRepository>();
+        services.AddScoped<SystemRoleSeeder>();
 
         services.AddIdentity(configuration, environment);
 

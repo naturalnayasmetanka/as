@@ -5,5 +5,5 @@ namespace AuthService.Core.Authentication;
 
 public interface IJwtTokenService
 {
-    JwtTokenResult Create(Account user);
+    JwtTokenResult Create(Account user, IEnumerable<string> roles);
 }

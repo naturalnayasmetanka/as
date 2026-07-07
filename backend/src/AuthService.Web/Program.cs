@@ -1,5 +1,7 @@
-﻿using AuthService.Core;
+using AuthService.Core;
+using AuthService.Core.Authorization;
 using AuthService.Infrastructure.Postgres;
+using AuthService.Infrastructure.Postgres.Authorization;
 using Framework.Endpoints;
 using Scalar.AspNetCore;
 using CoreRegistration = AuthService.Core.Registration;
@@ -33,7 +35,6 @@ public static class Program
             });
         });
 
-
         var app = builder.Build();
 
         var coreAssembly = typeof(CoreRegistration).Assembly;
@@ -41,13 +42,16 @@ public static class Program
         foreach (var type in endpointTypes)
         {
             if (Activator.CreateInstance(type) is IEndpoint endpoint)
+            {
                 endpoint.MapEndpoint(app);
+            }
         }
 
         app.MapHealthChecks("/health");
 
         app.UseCors(LocalFrontendCorsPolicy);
         app.UseAuthentication();
+        app.UseCurrentUser();
         app.UseAuthorization();
 
         if (app.Environment.IsDevelopment())
@@ -68,6 +72,12 @@ public static class Program
         app.UseHttpsRedirection();
 
         app.MapEndpoints();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<SystemRoleSeeder>();
+            seeder.SeedAsync().GetAwaiter().GetResult();
+        }
 
         app.Run();
     }

@@ -11,3 +11,5 @@ public sealed record LoginRequest(string Email, string Password);
 public sealed record LoginResponse(Guid UserId, string Email);
 
 public sealed record GetMeResponse(Guid Id, string Email);
+
+public sealed record AdminUserResponse(Guid Id, string Email, string[] Roles);

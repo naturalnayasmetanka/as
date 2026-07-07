@@ -59,40 +59,44 @@ export default function HomePage() {
 
   if (!checked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-        <div className="rounded-3xl bg-white p-8 shadow-lg">
+      <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-sm text-slate-500">Загрузка...</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (user) {
-    return <ProfileCard user={user} authType={authType ?? "cookie"} onLogout={handleLogout} />;
+    return (
+      <main className="min-h-[calc(100vh-4rem)] px-4 py-10">
+        <ProfileCard user={user} authType={authType ?? "cookie"} onLogout={handleLogout} />
+      </main>
+    );
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-12">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-lg lg:flex-row lg:items-start lg:p-10">
-        <section className="space-y-6 lg:w-1/2">
+    <main className="min-h-[calc(100vh-4rem)] px-4 py-10">
+      <div className="mx-auto grid w-full max-w-5xl gap-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-[0.9fr_1.1fr] md:p-8">
+        <section className="flex flex-col justify-between gap-8 rounded-xl bg-slate-950 p-6 text-white">
           <div className="space-y-3">
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Добро пожаловать</p>
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-300">Добро пожаловать</p>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
               Войдите или зарегистрируйтесь, чтобы продолжить.
             </h1>
-            <p className="max-w-xl text-base leading-7 text-slate-600">
+            <p className="max-w-xl text-sm leading-6 text-slate-300">
               После успешной авторизации вы останетесь в системе при перезагрузке страницы. Токен автоматически обновляется при истечении срока действия.
             </p>
           </div>
 
-          <div className="flex gap-3 rounded-3xl bg-slate-50 p-5">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-white/10 p-1">
             <button
               type="button"
               onClick={() => setMode("login")}
-              className={`flex-1 rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
                 mode === "login"
-                  ? "bg-slate-950 text-white"
-                  : "bg-white text-slate-700 ring-1 ring-slate-200"
+                  ? "bg-white text-slate-950"
+                  : "text-slate-200 hover:bg-white/10"
               }`}
             >
               Вход
@@ -100,10 +104,10 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setMode("register")}
-              className={`flex-1 rounded-2xl px-5 py-3 text-sm font-semibold transition ${
+              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
                 mode === "register"
-                  ? "bg-slate-950 text-white"
-                  : "bg-white text-slate-700 ring-1 ring-slate-200"
+                  ? "bg-white text-slate-950"
+                  : "text-slate-200 hover:bg-white/10"
               }`}
             >
               Регистрация

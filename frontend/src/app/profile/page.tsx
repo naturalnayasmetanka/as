@@ -36,8 +36,18 @@ export default function ProfilePage() {
   }, [router]);
 
   if (!checked || !user) {
-    return <p>Загрузка...</p>;
+    return (
+      <main className="min-h-[calc(100vh-4rem)] px-4 py-10">
+        <div className="mx-auto max-w-xl rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+          Загрузка...
+        </div>
+      </main>
+    );
   }
 
-  return <ProfileCard user={user} authType={authType} />;
+  return (
+    <main className="min-h-[calc(100vh-4rem)] px-4 py-10">
+      <ProfileCard user={user} authType={authType} />
+    </main>
+  );
 }

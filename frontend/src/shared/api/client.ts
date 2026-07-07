@@ -1,3 +1,5 @@
+import { clearSession, setSessionAccessToken } from "@/shared/session";
+
 const API_BASE = "http://localhost:7218";
 
 export class ApiError extends Error {
@@ -104,7 +106,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return body as T;
 }
 
-async function refreshAccessToken(): Promise<void> {
+export async function refreshAccessToken(): Promise<void> {
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -130,6 +132,7 @@ async function refreshAccessToken(): Promise<void> {
     }
 
     accessToken = result.accessToken;
+    setSessionAccessToken(result.accessToken);
     authType = "token";
   })();
 
@@ -174,6 +177,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export function setAccessToken(token: string) {
   accessToken = token;
+  setSessionAccessToken(token);
   authType = token ? "token" : authType;
 }
 
@@ -183,6 +187,7 @@ export function setAuthType(type: AuthType) {
 
 export function clearAccessToken() {
   accessToken = null;
+  clearSession();
   authType = null;
 }
 

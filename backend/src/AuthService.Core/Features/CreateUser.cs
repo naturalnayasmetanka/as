@@ -1,4 +1,5 @@
 ﻿using AuthService.Contracts;
+using AuthService.Core.Authorization;
 using AuthService.Domain.Accounts;
 using Core.Abstractions;
 using Framework.Endpoints;
@@ -47,6 +48,13 @@ public sealed class CreateUserHandler : ICommandHandler<CreateUserResponse, Crea
         if (!result.Succeeded)
         {
             var message = string.Join("; ", result.Errors.Select(e => e.Description));
+            return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure(message));
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(account, SystemRoles.User);
+        if (!roleResult.Succeeded)
+        {
+            var message = string.Join("; ", roleResult.Errors.Select(e => e.Description));
             return Result.Failure<CreateUserResponse, Error>(GeneralErrors.Failure(message));
         }
 

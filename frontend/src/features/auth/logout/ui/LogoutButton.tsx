@@ -44,7 +44,7 @@ export function LogoutButton({ onSuccess }: LogoutButtonProps = {}) {
         type="button"
         onClick={handleLogout}
         disabled={loading}
-        className="inline-flex h-12 items-center justify-center rounded-2xl bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex h-11 items-center justify-center rounded-lg bg-rose-600 px-4 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Выход..." : "Выйти"}
       </button>
