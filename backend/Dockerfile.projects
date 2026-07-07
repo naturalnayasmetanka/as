@@ -1,0 +1,46 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+USER $APP_UID
+WORKDIR /app
+EXPOSE 7220
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["nuget.config", "."]
+COPY ["Directory.Packages.props", "."]
+COPY ["src/ProjectsService.Web/ProjectsService.Web.csproj", "src/ProjectsService.Web/"]
+COPY ["src/ProjectsService.Core/ProjectsService.Core.csproj", "src/ProjectsService.Core/"]
+COPY ["src/ProjectsService.Domain/ProjectsService.Domain.csproj", "src/ProjectsService.Domain/"]
+COPY ["src/ProjectsService.Infrastructure.Postgres/ProjectsService.Infrastructure.Postgres.csproj", "src/ProjectsService.Infrastructure.Postgres/"]
+COPY ["src/Shared/Shared.csproj", "src/Shared/"]
+RUN dotnet restore "./src/ProjectsService.Web/ProjectsService.Web.csproj"
+COPY . .
+WORKDIR "/src/src/ProjectsService.Web"
+RUN dotnet build "./ProjectsService.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./ProjectsService.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM build AS migrations
+WORKDIR /src
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN dotnet ef migrations bundle \
+    --project src/ProjectsService.Infrastructure.Postgres/ProjectsService.Infrastructure.Postgres.csproj \
+    --startup-project src/ProjectsService.Web/ProjectsService.Web.csproj \
+    --output /efbundle \
+    --self-contained \
+    -r linux-x64
+
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS migrations-final
+WORKDIR /app
+RUN apt-get update && apt-get install -y libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
+COPY --from=migrations /efbundle ./efbundle
+RUN chmod +x ./efbundle
+ENTRYPOINT ["./efbundle"]
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "ProjectsService.Web.dll"]

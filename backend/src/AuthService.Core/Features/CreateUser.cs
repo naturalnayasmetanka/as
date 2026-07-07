@@ -1,5 +1,4 @@
 ﻿using AuthService.Contracts;
-using AuthService.Core.Authorization;
 using AuthService.Domain.Accounts;
 using Core.Abstractions;
 using Framework.Endpoints;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Shared.Authorization;
 
 namespace AuthService.Core.Features.Widgets.UseCases;
 

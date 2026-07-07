@@ -1,9 +1,16 @@
 using System.Security.Claims;
 
-namespace AuthService.Core.Authorization;
+namespace Shared.Authorization;
 
 public sealed class CurrentUser
 {
+    private readonly IPermissionMap _permissionMap;
+
+    public CurrentUser(IPermissionMap permissionMap)
+    {
+        _permissionMap = permissionMap;
+    }
+
     public Guid? Id { get; private set; }
     public IReadOnlySet<string> Roles { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     public IReadOnlySet<string> Permissions { get; private set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -22,6 +29,6 @@ public sealed class CurrentUser
             .ToArray();
 
         Roles = new HashSet<string>(roles, StringComparer.OrdinalIgnoreCase);
-        Permissions = AuthService.Core.Authorization.Permissions.ForRoles(Roles);
+        Permissions = _permissionMap.ForRoles(Roles);
     }
 }

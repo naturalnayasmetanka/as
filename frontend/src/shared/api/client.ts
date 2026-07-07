@@ -1,6 +1,7 @@
 import { clearSession, setSessionAccessToken } from "@/shared/session";
 
-const API_BASE = "http://localhost:7218";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7218";
+const PROJECTS_API_BASE = process.env.NEXT_PUBLIC_PROJECTS_API_URL ?? "http://localhost:7220";
 
 export class ApiError extends Error {
   status: number;
@@ -143,8 +144,8 @@ export async function refreshAccessToken(): Promise<void> {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE}${path}`;
+async function request<T>(path: string, options: RequestInit = {}, baseUrl = API_BASE): Promise<T> {
+  const url = `${baseUrl}${path}`;
   const initialRequest = createAuthorizedRequest(url, options);
   const retryRequest = initialRequest.clone();
 
@@ -202,4 +203,33 @@ export const api = {
       method: "POST",
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: "PUT",
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    }),
+  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+};
+
+export const projectsApi = {
+  get: <T>(path: string) => request<T>(path, { method: "GET" }, PROJECTS_API_BASE),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(
+      path,
+      {
+        method: "POST",
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      },
+      PROJECTS_API_BASE,
+    ),
+  put: <T>(path: string, body?: unknown) =>
+    request<T>(
+      path,
+      {
+        method: "PUT",
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      },
+      PROJECTS_API_BASE,
+    ),
+  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }, PROJECTS_API_BASE),
 };

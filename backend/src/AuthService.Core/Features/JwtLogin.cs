@@ -99,7 +99,7 @@ public sealed class JwtLoginHandler : ICommandHandler<JwtLoginResponse, JwtLogin
                 HttpOnly = true,
                 Secure = !httpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
                 SameSite = SameSiteMode.Strict,
-                Path = "/auth/jwt",
+                Path = GetRefreshCookiePath(httpContext),
                 Expires = expiresAt
             });
 
@@ -116,8 +116,20 @@ public sealed class JwtLoginHandler : ICommandHandler<JwtLoginResponse, JwtLogin
                 HttpOnly = true,
                 Secure = !httpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
                 SameSite = SameSiteMode.Strict,
-                Path = "/auth/jwt/refresh",
+                Path = GetLegacyRefreshCookiePath(httpContext),
                 Expires = DateTimeOffset.MinValue
             });
+    }
+
+    private static string GetRefreshCookiePath(HttpContext httpContext) =>
+        $"{GetForwardedPrefix(httpContext)}/auth/jwt";
+
+    private static string GetLegacyRefreshCookiePath(HttpContext httpContext) =>
+        $"{GetForwardedPrefix(httpContext)}/auth/jwt/refresh";
+
+    private static string GetForwardedPrefix(HttpContext httpContext)
+    {
+        var prefix = httpContext.Request.Headers["X-Forwarded-Prefix"].ToString().TrimEnd('/');
+        return string.IsNullOrWhiteSpace(prefix) ? string.Empty : prefix;
     }
 }

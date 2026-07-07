@@ -14,6 +14,7 @@ COPY ["src/AuthService.Core/AuthService.Core.csproj", "src/AuthService.Core/"]
 COPY ["src/AuthService.Contracts/AuthService.Contracts.csproj", "src/AuthService.Contracts/"]
 COPY ["src/AuthService.Domain/AuthService.Domain.csproj", "src/AuthService.Domain/"]
 COPY ["src/AuthService.Infrastructure.Postgres/AuthService.Infrastructure.Postgres.csproj", "src/AuthService.Infrastructure.Postgres/"]
+COPY ["src/Shared/Shared.csproj", "src/Shared/"]
 RUN dotnet restore "./src/AuthService.Web/AuthService.Web.csproj"
 COPY . .
 WORKDIR "/src/src/AuthService.Web"

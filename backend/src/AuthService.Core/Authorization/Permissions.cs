@@ -1,13 +1,15 @@
 namespace AuthService.Core.Authorization;
 
-public static class Permissions
+using Shared.Authorization;
+
+public sealed class Permissions : IPermissionMap
 {
     public const string UsersView = "users.view";
     public const string UsersManage = "users.manage";
     public const string ModerationView = "moderation.view";
     public const string StaffDashboardView = "staff.dashboard.view";
 
-    public static IReadOnlySet<string> ForRoles(IEnumerable<string> roles)
+    public IReadOnlySet<string> ForRoles(IEnumerable<string> roles)
     {
         var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
